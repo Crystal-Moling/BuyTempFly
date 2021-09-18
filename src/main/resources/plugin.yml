@@ -1,0 +1,11 @@
+name: BuyTempFly
+main: org.crystal.buytempfly.Main
+version: 1.0.0-SNAPSHOT
+api-version: 1.16
+depend:
+  - Vault
+  - TempFly
+commands:
+  btf:
+    description: 购买1小时飞行时间
+    usage: /<command>
