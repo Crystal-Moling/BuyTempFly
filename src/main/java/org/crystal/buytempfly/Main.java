@@ -10,15 +10,36 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
+    public boolean def;
+    public int FlyD;
+    public int FlyH;
+    public int FlyM;
+    public int FlyS;
+    public int prize;
+
     private static net.milkbowl.vault.economy.Economy vault = null;
-    private double prize = 100.0;
+
     public void onEnable() {
         if(!initVault()){
-            getLogger().info("vault插件挂钩失败，请检查是否安装了vault插件");
+            getLogger().info("§b vault插件挂钩失败，请检查是否安装了vault插件");
         } else if (!setupEconomy()){
-            getLogger().info("vault插件加载失败，请检查是否安装了vault插件");
+            getLogger().info("§b vault插件加载失败，请检查是否安装了vault插件");
         } else {
-            getLogger().info("BuyTempFly插件加载成功!");
+            InitConfig();
+            getLogger().info("§b BuyTempFly插件加载成功!");
+        }
+    }
+
+    public void InitConfig(){
+        def = this.getConfig().getBoolean("default");
+        FlyD = this.getConfig().getInt("flyTime.day");
+        FlyH = this.getConfig().getInt("flyTime.hour");
+        FlyM = this.getConfig().getInt("flyTime.min");
+        FlyS = this.getConfig().getInt("flyTime.sec");
+        prize = this.getConfig().getInt("flyPrize");
+        if(def){
+            this.saveDefaultConfig();
+            getLogger().info("§b 初次启动，请修改config.yml!");
         }
     }
     private boolean initVault(){
@@ -62,6 +83,7 @@ public class Main extends JavaPlugin {
     private void command(String Command){
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), Command);
     }
+
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         Player player = (Player) sender;
         if (!(sender instanceof Player)) {
@@ -72,12 +94,12 @@ public class Main extends JavaPlugin {
                     double bal = vault.getBalance(player);
                     if(vault.has(player, prize)){
                         command("eco take " + player.getName() + " " + prize);
-                        command("tf give " + player.getName() + " -h 1");
+                        command("tf give " + player.getName() + " -d " + FlyD + " -h " + FlyH + " -m " + FlyM + " -s " + FlyS);
                     }else{
-                        player.sendMessage("余额不足,你现在有$" + bal + ",需要$" + prize);
+                        player.sendMessage("§a 余额不足,你现在有$" + bal + ",需要$" + prize);
                     }
                 } else {
-                    player.sendMessage("vault插件挂钩失败，请联系管理员解决问题");
+                    player.sendMessage("§b vault插件挂钩失败，请联系管理员解决问题");
                 }
                 return true;
             }
