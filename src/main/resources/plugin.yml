@@ -7,7 +7,7 @@ depend:
   - TempFly
 commands:
   btf:
-    description: 购买1小时飞行时间
+    description: 购买飞行时间
     usage: /<command>
     permission: <plugin name>.btf
     permission-message: You don't have permission to do that
