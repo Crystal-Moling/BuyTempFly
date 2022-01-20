@@ -13,11 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.UUID;
 
 public class Main extends JavaPlugin {
-    public boolean def;
-    public int FlyD;
-    public int FlyH;
-    public int FlyM;
-    public int FlyS;
+    public int FlyMainSec;
     public int prize;
 
     private static net.milkbowl.vault.economy.Economy vault = null;
@@ -33,13 +29,16 @@ public class Main extends JavaPlugin {
         }
     }
 
+    public int GetIntConfig(String ConfigName){
+        return this.getConfig().getBoolean(ConfigName);
+    }
+
     public void InitConfig(){
-        def = this.getConfig().getBoolean("default");
-        FlyD = this.getConfig().getInt("flyTime.day");
-        FlyH = this.getConfig().getInt("flyTime.hour");
-        FlyM = this.getConfig().getInt("flyTime.min");
-        FlyS = this.getConfig().getInt("flyTime.sec");
-        prize = this.getConfig().getInt("flyPrize");
+        FlyMainSec = GetIntConfig("flyTime.sec") 
+                    + (GetIntConfig("flyTime.min") * 60) 
+                    + (FlyH = GetIntConfig("flyTime.hour") * 60 * 60) 
+                    + (FlyD = GetIntConfig("flyTime.day") * 24 * 60 * 60);
+        prize = GetIntConfig("flyPrize");
         if(def){
             this.saveDefaultConfig();
             getLogger().info("§b 初次启动，请修改config.yml!");
@@ -100,13 +99,13 @@ public class Main extends JavaPlugin {
                 if(initVault()){
                     double bal = vault.getBalance(player);  //获取玩家余额
                     if(vault.has(player, prize)){  //判断玩家是否有足够金钱
-                        if (TempFly.getAPI().addFlightTime(getPlayerUUID(player), FlyS) == true){
+                        if (TempFly.getAPI().addFlightTime(getPlayerUUID(player), FlyMainSec) == true){
                             vault.withdrawPlayer(player, prize);  //扣钱
                         } else {
-                            player.sendMessage("§a 余额不足,你现在有$" + bal + ",需要$" + prize);
+                            player.sendMessage("§a 飞行时间添加失败!");
                         }
                     }else{
-                        player.sendMessage("§a 飞行时间添加失败!");
+                        player.sendMessage("§a 余额不足,你现在有$" + bal + ",需要$" + prize);
                     }
                 } else {
                     getLogger().info("§b vault插件挂钩失败，请联系管理员解决问题");

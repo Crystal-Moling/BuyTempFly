@@ -1,5 +1,3 @@
-# 请在修改完毕后将default值改为false
-default: true
 flyTime:
   day: 0
   hour: 1
