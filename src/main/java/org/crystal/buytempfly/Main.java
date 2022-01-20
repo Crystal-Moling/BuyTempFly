@@ -3,7 +3,6 @@ package org.crystal.buytempfly;
 import com.moneybags.tempfly.TempFly;
 import net.milkbowl.vault.economy.Economy;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -28,32 +27,30 @@ public class Main extends JavaPlugin {
             getLogger().info("§b BuyTempFly插件加载成功!");
         }
     }
-
     public void onDisable(){
         this.saveConfig();
     }
 
     public int GetIntConfig(String ConfigName){
-        return this.getConfig().getBoolean(ConfigName);
-    }
+        return this.getConfig().getInt(ConfigName);
+    }//获取配置文件子程序
+    private UUID getPlayerUUID(Player player){
+        String fullPlayer = "OfflinePlayer:" + player.getName();
+        return UUID.nameUUIDFromBytes(fullPlayer.getBytes());
+    }  //计算UUID子程序
 
     public void InitConfig(){
         FlyMainSec = GetIntConfig("flyTime.sec") 
                     + (GetIntConfig("flyTime.min") * 60) 
-                    + (FlyH = GetIntConfig("flyTime.hour") * 60 * 60) 
-                    + (FlyD = GetIntConfig("flyTime.day") * 24 * 60 * 60);
+                    + (GetIntConfig("flyTime.hour") * 60 * 60)
+                    + (GetIntConfig("flyTime.day") * 24 * 60 * 60);
         prize = GetIntConfig("flyPrize");
     }  //初始化配置
     private boolean initVault(){
         RegisteredServiceProvider<Economy> economyProvider
                 = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-        if(economyProvider == null) return false;
-        else return true;
+        return economyProvider != null;
     }  //初始化Vault插件
-    private UUID getPlayerUUID(Player player){
-        String fullPlayer = "OfflinePlayer:" + player.getName();
-        return UUID.nameUUIDFromBytes(fullPlayer.getBytes());
-    }  //初始化TempFly插件
     private boolean setupEconomy() {
         RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> economyProvider;
         try {
@@ -61,16 +58,13 @@ public class Main extends JavaPlugin {
         } catch (Exception e) {
             return false;
         }
-
         if (economyProvider != null) {
-            this.vault = economyProvider.getProvider();
+            vault = economyProvider.getProvider();
         }
-
-        if (this.vault == null) {
+        if (vault == null) {
             return false;
         }
-
-        if (this.vault.getName() == null || this.vault.getName().isEmpty()) {
+        if (vault.getName() == null || vault.getName().isEmpty()) {
 
                     getLogger()
                     .warning(
@@ -81,17 +75,14 @@ public class Main extends JavaPlugin {
                             "This is technical information, please send this to economy plugin author: "
                                     + "VaultEconomyProvider.getName() return a null or empty.");
         } else {
-            getLogger().info("Using economy system: " + this.vault.getName());
+            getLogger().info("Using economy system: " + vault.getName());
         }
         return true;
     }
 
-    private boolean command(String Command){
-        return Bukkit.dispatchCommand(Bukkit.getConsoleSender(), Command);
-    }
-
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         Player player = (Player) sender;
+        UUID PUUID = getPlayerUUID(player);
         if (!(sender instanceof Player)) {  //判断执行者是否为玩家
             sender.sendMessage("只有玩家能够使用该命令!");
         } else {
@@ -99,9 +90,13 @@ public class Main extends JavaPlugin {
                 if(initVault()){
                     double bal = vault.getBalance(player);  //获取玩家余额
                     if(vault.has(player, prize)){  //判断玩家是否有足够金钱
-                        if (TempFly.getAPI().addFlightTime(getPlayerUUID(player), FlyMainSec) == true){
-                            vault.withdrawPlayer(player, prize);  //扣钱
-                        } else {
+                        double OriginalFlytime = TempFly.getAPI().getFlightTime(PUUID);//获取玩家当前飞行时间
+                        double TargetFlyTime = OriginalFlytime + FlyMainSec;//计算玩家应有的飞行时间
+                        TempFly.getAPI().addFlightTime(PUUID, FlyMainSec);//尝试添加飞行时间
+                        if(TempFly.getAPI().getFlightTime(PUUID) == TargetFlyTime){  //判断实际飞行时间是否等于计算值
+                            vault.withdrawPlayer(player, prize);  //扣除金钱
+                        } else {  //如果不等于
+                            TempFly.getAPI().setFlightTime(PUUID,OriginalFlytime);//将玩家的飞行时间还原
                             player.sendMessage("§a 飞行时间添加失败!");
                         }
                     }else{
