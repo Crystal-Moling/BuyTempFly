@@ -29,6 +29,10 @@ public class Main extends JavaPlugin {
         }
     }
 
+    public void onDisable(){
+        this.saveConfig();
+    }
+
     public int GetIntConfig(String ConfigName){
         return this.getConfig().getBoolean(ConfigName);
     }
@@ -39,10 +43,6 @@ public class Main extends JavaPlugin {
                     + (FlyH = GetIntConfig("flyTime.hour") * 60 * 60) 
                     + (FlyD = GetIntConfig("flyTime.day") * 24 * 60 * 60);
         prize = GetIntConfig("flyPrize");
-        if(def){
-            this.saveDefaultConfig();
-            getLogger().info("§b 初次启动，请修改config.yml!");
-        }
     }  //初始化配置
     private boolean initVault(){
         RegisteredServiceProvider<Economy> economyProvider
