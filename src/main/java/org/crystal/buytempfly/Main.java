@@ -18,6 +18,7 @@ public class Main extends JavaPlugin {
     private static net.milkbowl.vault.economy.Economy vault = null;
 
     public void onEnable() {
+        this.saveDefaultConfig();
         if(!initVault()){
             getLogger().info("§b vault插件挂钩失败，请检查是否安装了vault插件及EssentialsX插件");
         } else if (!setupEconomy()){
